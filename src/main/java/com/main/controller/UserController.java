@@ -1,61 +1,62 @@
 package com.main.controller;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import com.main.binding.Register;
-import com.main.binding.Login;
+
+import com.main.dto.LoginForm;
+import com.main.entity.UserEntity;
 import com.main.service.UserService;
+import com.main.util.ServiceMsg;
 
 @Controller
 public class UserController {
-	
 	@Autowired
-	private UserService userservice;
-	
-	@GetMapping("/register")
-	public String Register(Model model) {
-		model.addAttribute("user", new Register());
-		return "register";
-	}
-	
-	@PostMapping("/handleregister")
-	public String HandleRegister(@ModelAttribute("user") Register form , Model model) {
-		
-		String result = userservice.register(form);
-		
-		if(result.contains("success")) {
-			model.addAttribute("succmsg","Account Created Successfully");
-			model.addAttribute("user", new Register());
-		}else {
-			model.addAttribute("errmsg","oops , Something Went Wrong");
-		}
-		
-		return "register";
-	}
-	
-	@GetMapping("/login")
-	public String Login(Model model) {
-		model.addAttribute("loginuser" , new Login());
-		return "login";
-	}
-	
-	@PostMapping("/handlelogin")
-	public String HandlePage(@ModelAttribute("loginuser") Login login , Model model) {
-		
-		String result = userservice.login(login);
-		
-		if(result.contains("success")) {
-			return "redirect:/dashboard";
-		}else {
-			model.addAttribute("errmsg", "Invalid Details Choose correct details");
-		}
-		
-		return "login";
+	private UserService userService;
+	@Autowired
+	private HttpSession session;
+
+	@GetMapping("/signup")
+	public String signup(Model model) {
+		model.addAttribute("user", new UserEntity());
+		return "signup";
 	}
 
+	@PostMapping("/signup")
+	public String signupHandler(@ModelAttribute("user") UserEntity user, Model model) {
+		ServiceMsg status = this.userService.register(user);
+		if (status == ServiceMsg.REG_SUCCESS) {
+			model.addAttribute("success", status.getMsg());
+		} else
+			model.addAttribute("failed", status.getMsg());
+		return "signup";
+	}
+
+	@GetMapping("/login")
+	public String login(Model model) {
+		model.addAttribute("loginData",new LoginForm());
+		return "login";
+	}
+	
+	@PostMapping("/login")
+	public String loginHandler(@ModelAttribute("lognData")LoginForm loginData,Model model) {
+		ServiceMsg status = this.userService.login(loginData);
+		if(status!=ServiceMsg.LOGIN_SUCCESS) {
+			model.addAttribute("failed",status.getMsg());
+			model.addAttribute("loginData",loginData);
+			return "login";
+		}
+		return "redirect:/myposts";
+	}
+	@GetMapping("/logout")
+	public String logout() {
+		this.session.invalidate();
+		return "redirect:/";
+	}
 
 }

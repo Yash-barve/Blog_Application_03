@@ -1,12 +1,16 @@
 package com.main.service;
 
-import com.main.binding.Login;
-import com.main.binding.Register;
+import com.main.dto.LoginForm;
+import com.main.entity.UserEntity;
+import com.main.util.ServiceMsg;
 
 public interface UserService {
+	public ServiceMsg register(UserEntity user);
 
-	public String register(Register form);
+	public ServiceMsg login(LoginForm loginData);
 	
-	public String login(Login form);
+	public boolean checkUser();
 	
+	public void logout();
+
 }
